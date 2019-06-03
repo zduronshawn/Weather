@@ -51,3 +51,23 @@ export async function getWind(date) {
   //   console.log(`${path} grib deleted`)
   // })
 }
+
+export async function getTemp(date) {
+  if (!date) date = moment().format("YYYYMMDD")
+  const qs = {
+    file: GRIB_FILE,
+    dir: `/gfs.${date}00`,
+    lev_surface: VAR_TRUE,
+    var_TMP: VAR_TRUE,
+  }
+  const path = `data/temp/temp-grib-${date}`
+  const resp = request.get(ORIGIN).query(qs)
+  const reulst = await pipeGrib(resp, path)
+  console.time(`${path} grib2json`)
+  await exec(`grib2json -d -n -o data/temp/temp-json-${date}.json ${path}`)
+  console.timeEnd(`${path} grib2json`)
+  // fs.unlink(path, (err) => {
+  //   if (err) throw err
+  //   console.log(`${path} grib deleted`)
+  // })
+}

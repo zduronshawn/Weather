@@ -1,7 +1,7 @@
 import fs from 'fs'
 import schedule from 'node-schedule'
 import moment from 'moment'
-import { getWind } from './getGrib'
+import { getWind, getTemp, getRH } from './getGrib'
 
 function isFileExist(field, date, format) {
   return new Promise((resolve, reject) => {
@@ -21,7 +21,6 @@ export function checkFile(field, format = "json") {
     const date = moment().subtract(i, 'days').format("YYYYMMDD")
     dateArr.push(date)
   }
-  console.log(dateArr)
   const promises = dateArr.map((date) => {
     return isFileExist(field, date, format)
   })
@@ -37,16 +36,27 @@ export function checkFile(field, format = "json") {
 }
 
 
+
 export function createSchedule(time = { hour: 5, minute: 30, second: 0 }) {
-  let job = schedule.scheduleJob(time, async () => {
+  schedule.scheduleJob(time, async () => {
     const missingDateArr = await checkFile("wind")
+    const missingTempDateArr = await checkFile("temp")
+    console.log(missingDateArr)
+    console.log(missingTempDateArr)
     const promises = missingDateArr.map(date => {
       return getWind(date)
     })
+    const promisesTemp = missingTempDateArr.map(date => {
+      return getTemp(date)
+    })
+
     await Promise.all(promises)
       .then((results) => {
         // console.log(results)
       })
+    await Promise.all(promisesTemp)
+      .then((results) => {
+        // console.log(results)
+      })
   })
-  return job
 }

@@ -28,4 +28,22 @@ router.get("/wind/:date", async (ctx, next) => {
   }
 })
 
+router.get("/temp/:date", async (ctx, next) => {
+  const date = ctx.params.date
+  const tempPath = `data/temp/temp-json-${date}.json`
+  let content = ""
+  try {
+    fs.accessSync(tempPath, fs.constants.F_OK)
+    content = await file(tempPath)
+    ctx.body = content
+    ctx.type = ""
+  } catch (err) {
+    ctx.body = {
+      code: -1,
+      msg: "file not find"
+    }
+    console.log(err)
+  }
+})
+
 export default router
